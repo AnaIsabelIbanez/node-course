@@ -21,18 +21,18 @@ const addNote = (title, body) => {
     title,
     body
   }
-  console.log('notes', notes);
-  // const duplicateNotes = notes.filter((noteElement) => noteElement.title === title);
-  //
-  // if(duplicateNotes.length === 0) {
-  //   notes.push(note);
-  //   saveNotes(note);
-  //   return note;
-  // }
+  // console.log('notes', notes);
+  const duplicateNotes = notes.filter((noteElement) => noteElement.title === title);
+
+  if(duplicateNotes.length === 0) {
+    notes.push(note);
+    saveNotes(note);
+    return note;
+  }
 };
 
 const getAll = () => {
-  console.log('getting all');
+  return fetchNotes();
 }
 
 const getNote = (title) => {
