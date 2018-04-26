@@ -1,60 +1,34 @@
-const fs = require('fs');
-const _  = require('lodash');
-const yargs  = require('yargs');
+const request = require('request');
+const yargs = require('yargs');
 
-const notes = require('./notes.js');
-const titleOptions = {
-  describe: 'Title of note',
-  demand: true,
-  alias: 't'
-};
-const bodyOption = {
-  describe: 'the body of the note',
-  demand: true,
-  alias: 'b'
-}
+const geocode = require('./geocode/geocode');
+const weather = require('./weather/weather');
 
 const argv = yargs
-  .command('add', 'Add a new note', {
-    title: titleOptions,
-    body: bodyOption
+  .option({
+    a: {
+      demand: true,
+      alias: 'address',
+      describe: 'Address to fetch weather for',
+      string: true
+    }
   })
-  .command('list', 'List all notes')
-  .command('read', 'Read a note', {
-    title: titleOptions
-  })
-  .command('remove', 'Remove a note', {
-    title: titleOptions
-  })
-  .help()
+  .help('help', 'h')
   .argv;
 
-const command = argv._[0];
 
-if (command === 'add') {
-  const note = notes.addNote(argv.title, argv.body);
-  if (note) {
-    console.log('note created');
-    notes.logNote(note);
+geocode.geocodeAddress(argv.address, (errorMessage, results) => {
+  if (errorMessage) {
+    console.log(errorMessage);
   } else {
-    console.log('note title taken');
+    console.log(results.address);
+    console.log('results.longitude', results.longitude);
+    weather.getWeather(results.latitude, results.longitude, (errorMessage, weatherResults) => {
+      if (errorMessage) {
+          console.log(errorMessage);
+      } else {
+          console.log(`It is currently ${weatherResults.temperature}. It feels like ${weatherResults.temperature}`);
+      }
+  })
   }
-} else if ( command === 'list') {
-  const allNotes = notes.getAll();
-  console.log(`printing ${allNotes.length} note(s)`);
-  allNotes.forEach((note) => notes.logNote(note));
-}  else if ( command === 'remove') {
-  const noteRemoved = notes.removeNote(argv.title);
-  const message = noteRemoved ? 'Note was remove' : 'Note not found';
-  console.log(message);
-}  else if ( command === 'read') {
-  const note = notes.getNote(argv.title);
-  if(note) {
-    console.log('Note found');
-    notes.logNote(note);
-  } else {
-    console.log('Note not found');
-  }
-} else {
-  console.log('command not recognized');
-}
+});
